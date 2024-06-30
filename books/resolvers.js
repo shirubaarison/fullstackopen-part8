@@ -152,9 +152,13 @@ const resolvers = {
       }
     },
     Subscription: {
-        bookAdded: {
-            subscribe: () => pubsub.asyncIterator('BOOK_ADDED')
-        }
+      bookAdded: {
+        subscribe: () => pubsub.asyncIterator('BOOK_ADDED'),
+        resolve: async (payload) => {
+          const populatedBook = await Book.findById(payload.bookAdded._id).populate('author');
+          return populatedBook;
+        },
+      },
     }
   }
 

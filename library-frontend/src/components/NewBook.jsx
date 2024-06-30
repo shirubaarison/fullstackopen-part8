@@ -10,8 +10,8 @@ const NewBook = (props) => {
   const [genre, setGenre] = useState('')
   const [genres, setGenres] = useState([])
 
-  const [ addBook ] = useMutation(ADD_BOOK, {
-    refetchQueries: [ { query: ALL_AUTHORS }, { query: ALL_BOOKS }]
+  const [addBook, { error }] = useMutation(ADD_BOOK, {
+    refetchQueries: [{ query: ALL_AUTHORS }, { query: ALL_BOOKS }]
   })
 
   if (!props.show) {
@@ -21,17 +21,30 @@ const NewBook = (props) => {
   const submit = async (event) => {
     event.preventDefault()
 
-    addBook({ variables: { title, author, published: parseInt(published), genres } })
+    const publishedInt = parseInt(published)
+    if (isNaN(publishedInt)) {
+      alert('Published year must be a number')
+      return
+    }
 
-    setTitle('')
-    setPublished('')
-    setAuthor('')
-    setGenres([])
-    setGenre('')
+    try {
+      await addBook({ variables: { title, author, published: publishedInt, genres } })
+      alert(`book added: ${title}!`)
+      setTitle('')
+      setPublished('')
+      setAuthor('')
+      setGenres([])
+      setGenre('')
+    } catch (e) {
+      console.error('Error saving book:', e)
+      alert('Saving book failed: ' + e.message)
+    }
   }
 
   const addGenre = () => {
-    setGenres(genres.concat(genre))
+    if (genre.trim() === '') return
+
+    setGenres([...genres, genre])
     setGenre('')
   }
 
@@ -72,6 +85,7 @@ const NewBook = (props) => {
         <div>genres: {genres.join(' ')}</div>
         <button type="submit">create book</button>
       </form>
+      {error && <p>Error: {error.message}</p>}
     </div>
   )
 }

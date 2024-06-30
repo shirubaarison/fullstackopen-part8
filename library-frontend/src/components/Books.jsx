@@ -1,22 +1,46 @@
 /* eslint-disable react/prop-types */
-import { useQuery } from "@apollo/client"
-import { ALL_BOOKS } from "../queries"
+import { useQuery, useSubscription } from "@apollo/client"
+import { ALL_BOOKS, BOOK_ADDED } from "../queries"
 import { useState, useEffect } from "react"
 
 const Books = (props) => {
-  const result = useQuery(ALL_BOOKS)
-  const [books, setBooks] = useState(null)
-  const [genres, setGenres] = useState(null)
-  const [filtered, setFiltered] = useState(null)
+  const { loading, data } = useQuery(ALL_BOOKS)
+  const [books, setBooks] = useState([])
+  const [genres, setGenres] = useState([])
+  const [filtered, setFiltered] = useState([])
   const [genre, setGenre] = useState(null)
 
-  useEffect(() => {
-    if (result.data) {
-      setBooks(result.data.allBooks)
-      setGenres(result.data.allBooks.flatMap(b => b.genres))
-      setFiltered(result.data.allBooks)
+  useSubscription(BOOK_ADDED, {
+    onData: ({ data, client }) => {
+      const addedBook = data.data.bookAdded
+      try {
+        client.cache.updateQuery({ query: ALL_BOOKS }, ({ allBooks }) => {
+          return {
+            allBooks: allBooks.concat(addedBook)
+          }
+        })
+      } catch (error) {
+        console.error('Error updating client cache:', error)
+      }
+
+      setBooks((prevBooks) => prevBooks.concat(addedBook))
+      setGenres((prevGenres) => [
+        ...new Set([...prevGenres, ...addedBook.genres]),
+      ])
+      if (!genre || addedBook.genres.includes(genre)) {
+        setFiltered((prevFiltered) => prevFiltered.concat(addedBook))
+      }
     }
-  }, [result.data]);
+  })
+
+  useEffect(() => {
+    if (data) {
+      setBooks(data.allBooks)
+      const genresSet = new Set(data.allBooks.flatMap(b => b.genres))
+      setGenres([...genresSet])
+      setFiltered(data.allBooks)
+    }
+  }, [data])
 
   const allGenres = [...new Set(genres)]
 
@@ -31,7 +55,7 @@ const Books = (props) => {
     }
   }
 
-  if (result.loading )
+  if (loading)
     return <div>loading...</div>
 
   if (!props.show) {
@@ -41,7 +65,7 @@ const Books = (props) => {
   return (
     <div>
       <h2>books</h2>
-      {genre && <p>in genrer <strong>{genre}</strong></p>}
+      {genre && <p>in genre <strong>{genre}</strong></p>}
       <table>
         <tbody>
           <tr>
@@ -59,7 +83,7 @@ const Books = (props) => {
         </tbody>
       </table>
       {allGenres.map(genre => (
-        <button onClick={() => updateFilter(genre)}key={genre}>{genre}</button>
+        <button onClick={() => updateFilter(genre)} key={genre}>{genre}</button>
       ))}
       <button onClick={() => updateFilter(null)}>all genres</button>
     </div>

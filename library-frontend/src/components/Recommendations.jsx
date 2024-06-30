@@ -12,8 +12,11 @@ const Recommendations = (props) => {
   useEffect(() => {
     if (result.data && favoriteGenre.data) {
       const genr = favoriteGenre.data ? favoriteGenre.data.me.favoriteGenre : null
-      setGenre(genr)
-      setFiltered(result.data.allBooks.filter(b => b.genres.includes(genr)))
+      if (genr) {
+        setGenre(genr)
+        setFiltered(result.data.allBooks.filter(b => b.genres.includes(genr)))
+      }
+      
     }
   }, [favoriteGenre.data, result.data]);
 
