@@ -4,37 +4,25 @@ import { ALL_BOOKS, FAVORITE_GENRE } from "../queries"
 import { useState, useEffect } from "react"
 
 const Recommendations = (props) => {
-  const result = useQuery(ALL_BOOKS)
+  const books = useQuery(ALL_BOOKS)
   const favoriteGenre = useQuery(FAVORITE_GENRE)
   const [filtered, setFiltered] = useState(null)
   const [genre, setGenre] = useState(null)
 
   useEffect(() => {
-    if (result.data && favoriteGenre.data) {
-      const genr = favoriteGenre.data ? favoriteGenre.data.me.favoriteGenre : null
-      if (genr) {
-        setGenre(genr)
-        setFiltered(result.data.allBooks.filter(b => b.genres.includes(genr)))
-      }
-      
+    if (books.data && favoriteGenre.data) {
+      const genr = 'politica'
+      console.log(favoriteGenre.data)
+      setGenre(genr)
+      setFiltered(books.data.allBooks.filter(b => b.genres.includes(genr)))
     }
-  }, [favoriteGenre.data, result.data]);
-
-
-  if (result.loading || favoriteGenre.loading)
+  }, [books.data, favoriteGenre])
+  
+  if (books.loading || favoriteGenre.loading)
     return <div>loading...</div>
 
   if (!props.show) {
     return null
-  }
-
-
-  if (!genre) {
-    return (
-        <div>
-            somehow you dont have a favorite genre....
-        </div>
-    )
   }
 
   return (

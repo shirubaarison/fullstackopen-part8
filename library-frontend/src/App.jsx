@@ -11,12 +11,11 @@ const App = () => {
   const [token, setToken] = useState(null)
   const client = useApolloClient()
 
-
   const logout = () => {
     setToken(null)
     localStorage.clear()
     client.resetStore()
-    setPage("")
+    setPage('authors')
   }
 
   return (
@@ -25,7 +24,7 @@ const App = () => {
         <button onClick={() => setPage("authors")}>authors</button>
         <button onClick={() => setPage("books")}>books</button>
         {token && <button onClick={() => setPage("add")}>add book</button>}
-        {token && <button onClick={() => setPage("recommended")}>recommended</button>}
+        {/* {token && <button onClick={() => setPage("recommended")}>recommended</button>} */}
         {token && <button onClick={logout}>logout</button>}
         {!token && <button onClick={() => setPage("login")}>login</button>}
       </div>
@@ -38,7 +37,7 @@ const App = () => {
 
       <LoginForm show={page === "login"} setToken={setToken} setPage={setPage}/>
 
-      {/* <Recommendations show={page === "recommended"} /> */}
+      {/* <Recommendations show={page === "recommended"}/> */}
     </div>
   )
 }
